@@ -39,6 +39,8 @@ packages = ["server"]
 
 [tool.hatch.build.targets.wheel.force-include]
 "server/data/heracleum_metabolites.csv" = "server/data/heracleum_metabolites.csv"
+"server/data/supplementary_smiles.csv" = "server/data/supplementary_smiles.csv"
+"server/data/names_cache.csv" = "server/data/names_cache.csv"
 
 [build-system]
 requires = ["hatchling"]

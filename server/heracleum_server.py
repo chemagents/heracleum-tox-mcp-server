@@ -46,14 +46,14 @@ def dataset_overview() -> dict:
             "by_chemical_class": by_class,
             "by_paper_cluster": by_cluster,
             "cluster_families": CLUSTER_FAMILIES,
-            "finding": f"{ds.n} named metabolites reconstructed; cluster E (the paper's "
-                       "quantitative core) is reconstructed exactly with its published toxicity values.",
+            "finding": f"{ds.n} metabolites reproduced exactly from the paper's Supplementary "
+                       "Tables S1-S5 (SMILES + SynID, clusters A-E) plus 3 un-clustered molecules; "
+                       "cluster E carries the published Table 2 toxicity values.",
         },
         "metadata": {
             "paper": {"n_compounds": 225, "period": "2003-2025",
                       "cluster_sizes": {"A": 25, "B": 22, "C": 132, "D": 21, "E": 22, "unclustered": 3}},
-            "note": "Full 225 require Supplementary Tables S1-S5 (not openly downloadable); "
-                    "clusters A-D here use representative members.",
+            "source": "Supplementary Tables S1-S5 (standardized SMILES + SynID)",
             "reference": PAPER,
         },
     }
@@ -277,8 +277,12 @@ def reproduce_all() -> dict:
     e_iv = [v for v in e_iv if v is not None]
     rocs = [metrics[e]["value"] for e in science.TOX_ENDPOINTS]
     most_toxic = ranking[0]["cluster"] if ranking else None
+    sizes = {c: int((np.array(ds.paper_cluster) == c).sum()) for c in ["A", "B", "C", "D", "E"]}
+    paper_sizes = {"A": 25, "B": 22, "C": 132, "D": 21, "E": 22}
 
     checks = [
+        ("n_compounds", ds.n, 225, ds.n == 225),
+        ("cluster_sizes", sizes, paper_sizes, sizes == paper_sizes),
         ("cluster_E_count", n_e, 22, n_e == 22),
         ("five_clusters_recovered", clust["n_clusters"], 5, clust["n_clusters"] == 5),
         ("cluster_family_agreement>=0.6", round(clust["family_agreement"], 2) if clust["family_agreement"] else None,

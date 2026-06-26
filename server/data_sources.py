@@ -32,6 +32,16 @@ logger = logging.getLogger(__name__)
 
 LD50_ROUTES = ["oral", "iv", "ip", "sc", "skin", "im"]
 
+# The paper's own reported model quality (Supplementary Table S6): RMSE in Log10(mg/kg)
+# for the six LD50 routes, ROC-AUC for the four classification endpoints.
+PAPER_METRICS: dict[str, tuple[str, float]] = {
+    "ld50_iv": ("RMSE", 0.41), "ld50_oral": ("RMSE", 0.45), "ld50_ip": ("RMSE", 0.49),
+    "ld50_sc": ("RMSE", 0.65), "ld50_skin": ("RMSE", 0.81), "ld50_im": ("RMSE", 0.87),
+    "ld50": ("RMSE", 0.45),    # acute base model (compare to the oral RMSE)
+    "carcinogenicity": ("ROC-AUC", 0.79), "hepatotoxicity": ("ROC-AUC", 0.81),
+    "dili": ("ROC-AUC", 0.90), "cardiotoxicity": ("ROC-AUC", 0.93),
+}
+
 ENDPOINTS: dict[str, dict] = {
     "ld50": dict(task="regression", tdc="LD50_Zhu", group="Tox",
                  unit="neg_log10_mol_per_kg", section="2.4 / 3.3",

@@ -18,11 +18,19 @@ ds = load_dataset()
 # --------------------------------------------------------------------------- #
 # Deterministic (offline)
 # --------------------------------------------------------------------------- #
-def test_dataset_reconstructed():
-    assert ds.n >= 60
-    assert int(cluster_e_mask(ds).sum()) == 22          # paper cluster E
+def test_dataset_full_225():
+    assert ds.n == 225                                  # full dataset from Supplementary S1-S5
+    sizes = {c: ds.paper_cluster.count(c) for c in ["A", "B", "C", "D", "E"]}
+    assert sizes == {"A": 25, "B": 22, "C": 132, "D": 21, "E": 22}   # exact cluster sizes
+    assert ds.paper_cluster.count("none") == 3          # un-clustered molecules
+    assert int(cluster_e_mask(ds).sum()) == 22
     for name in ["bergamottin", "psoralen", "xanthotoxin", "umbelliferone", "bergapten"]:
         assert ds.index_for_name(name) is not None, name
+
+
+def test_every_compound_has_synid():
+    # all 222 clustered compounds carry the paper's SynID
+    assert ds.df[ds.df.paper_cluster != "none"]["synid"].notna().all()
 
 
 def test_published_reference_values():
@@ -37,7 +45,7 @@ def test_published_reference_values():
 def test_clustering_recovers_five_families():
     res = cluster_metabolites(ds, 5)
     assert res["n_clusters"] == 5
-    assert res["family_agreement"] >= 0.6           # cluster labels match the paper's families
+    assert res["family_agreement"] >= 0.8           # cluster labels match the paper's families
     assert set(res["paper_outliers"]) == {"byakangelicol", "gamma-bisabolene", "alpha-terpinolene"}
 
 

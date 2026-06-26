@@ -63,17 +63,21 @@ def cluster_metabolites(ds: Dataset, n_clusters: int | None = None) -> dict:
     ).fit_predict(D)
 
     clusters = []
-    used_letters: set[str] = set()
     for cid in range(k):
         idx = np.where(labels == cid)[0]
-        classes = [ds.classes[i] for i in idx]
-        dominant = Counter(classes).most_common(1)[0][0]
-        letter = CLASS_TO_CLUSTER.get(dominant, "?")
+        # Label each computed cluster by the dominant *paper* family among its known members
+        # (the paper's A-E are family labels); fall back to the chemical class otherwise.
+        fams = [ds.paper_cluster[i] for i in idx if ds.paper_cluster[i] in CLUSTER_FAMILIES]
+        if fams:
+            letter = Counter(fams).most_common(1)[0][0]
+        else:
+            dominant_class = Counter(ds.classes[i] for i in idx).most_common(1)[0][0]
+            letter = CLASS_TO_CLUSTER.get(dominant_class, "?")
         clusters.append({
             "cluster_id": int(cid),
             "letter": letter,
-            "dominant_class": dominant,
-            "family": CLUSTER_FAMILIES.get(letter, dominant),
+            "dominant_class": Counter(ds.classes[i] for i in idx).most_common(1)[0][0],
+            "family": CLUSTER_FAMILIES.get(letter, letter),
             "size": int(len(idx)),
             "members": [ds.names[i] for i in idx],
             "indices": idx.tolist(),

@@ -104,11 +104,15 @@ def general_tox_predictions(ds: Dataset, indices: list[int]) -> list[dict]:
 
 
 def model_metrics() -> dict:
-    """Trained-model quality (RMSE / ROC-AUC) — analogue of Supplementary Table S6."""
+    """Trained-model quality (RMSE / ROC-AUC) vs the paper's Supplementary Table S6."""
+    from .data_sources import PAPER_METRICS
+
     out = {}
     for ep in ["ld50", *TOX_ENDPOINTS]:
         m = models.get_model(ep)
+        paper = PAPER_METRICS.get(ep)
         out[ep] = {"backend": m.backend, "metric": m.metric_name,
                    "value": round(m.metric_value, 3), "n_train": m.n_train,
-                   "data_source": m.meta.get("data_source")}
+                   "data_source": m.meta.get("data_source"),
+                   "paper_value": paper[1] if paper else None}
     return out

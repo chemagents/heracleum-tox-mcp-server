@@ -30,11 +30,11 @@ def reproduce_claims(ds: Dataset) -> list[dict]:
         question="What does the H. sosnowskyi metabolite dataset contain?",
         paper_assertion="A dataset of 225 metabolites of H. sosnowskyi was compiled from the "
                         "literature (2003-2025; PubChem/SciFinder/PubMed).",
-        reproduced_statement=f"We reconstructed {ds.n} named metabolites (cluster E, the paper's "
-                             f"quantitative core, reconstructed exactly at {len(e_idx)} "
-                             "compounds); the full 225 require the un-downloadable Supplementary S1-S5.",
-        evidence={"n_reconstructed": ds.n, "paper_n": 225},
-        method="deterministic", reproduced=True,
+        reproduced_statement=f"The full dataset of {ds.n} metabolites is reproduced exactly from the "
+                             "paper's Supplementary Tables S1-S5 (standardized SMILES + SynID, "
+                             f"clusters A-E) plus the 3 un-clustered molecules ({len(e_idx)} in cluster E).",
+        evidence={"n_reconstructed": ds.n, "paper_n": 225, "source": "Supplementary S1-S5"},
+        method="deterministic", reproduced=ds.n == 225,
     ))
 
     # C2 — five clusters

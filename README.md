@@ -49,13 +49,21 @@ presigned URLs (same pattern as `chemical-mcp-server` / `tox-antitargets-mcp-ser
 
 | Metric | Paper | This server |
 |---|---|---|
-| Cluster E (furanocoumarins) size | 22 | **22 (exact)** |
-| Chemical-space clusters | 5 families | **5, ≥70 % family agreement** |
+| Dataset size | 225 metabolites | **225 (exact, from Supplementary S1–S5)** |
+| Cluster sizes A/B/C/D/E | 25/22/132/21/22 | **25/22/132/21/22 (exact)** |
+| Chemical-space clusters | 5 families | **5, ~86 % family agreement** |
 | Most-toxic cluster | E (furanocoumarins) | **E** |
 | Cluster-E IV LD50 range | 62–450 mg/kg | **62–450 (bergamottin/phellopterin 62, umbelliferone 450)** |
-| LD50 regression error | RMSE "~45 %" | **RMSE 0.60 (−log mol/kg)** |
-| Tox classification ROC-AUC | 0.79–0.93 | **0.80–0.87** |
+| LD50 regression error | RMSE 0.41–0.87 (Table S6) | **RMSE 0.60** |
+| Tox classification ROC-AUC | 0.79–0.93 (Table S6) | **0.80–0.87** |
 | Synthesis-cost spread | $0.19–311/g | **$0.19 / $24.9 / $311 (exact)** |
+
+The full 225-compound dataset (standardized SMILES + SynID + cluster A–E) is reproduced
+**exactly** from the paper's Supplementary Tables S1–S5 — parsed by `parse_supplementary.py`
+into `server/data/supplementary_smiles.csv`, then assembled by `build_dataset.py` (which
+merges the cluster-E Table 2 toxicity values and resolves compound names via PubChem). The
+paper's own model-quality numbers (Supplementary Table S6) are bundled for comparison
+(`model_quality` / `reproduce_all`).
 
 **Documented open-analogue divergences** (faithful method; the small open datasets disagree
 with Syntelly's proprietary models):
@@ -70,9 +78,9 @@ with Syntelly's proprietary models):
 - *Per-route LD50*: TOXRIC's six per-route mouse sets are not openly scriptable, so all
   routes share the open acute-LD50 model unless you supply per-route CSVs (see below). The
   **cluster ranking** (E most toxic) is the robust open reproduction.
-- *Full 225-compound set*: Supplementary Tables S1–S5 (SMILES+SynID) are not downloadable,
-  so the dataset is reconstructed from the compound **names** in the paper — cluster E (the
-  quantitative core) exactly; clusters A–D with representative members.
+- *Cluster D vs E*: plain ECFP4 + agglomerative clustering does not separate aromatics (D)
+  from furanocoumarins (E) as cleanly as the paper's differential-fingerprint t-SNE (they are
+  structurally adjacent); 4 of 5 families are recovered distinctly at ~86 % agreement.
 
 ## Run locally
 
@@ -82,9 +90,14 @@ cd heracleum-tox-mcp-server
 cp .env.example .env
 uv sync
 uv pip install --no-deps "PyTDC==0.4.1"     # open datasets; pins old rdkit-pypi, so --no-deps
-uv run python build_dataset.py              # reconstruct the dataset (resolves SMILES via PubChem)
 uv run python prepare_models.py             # train & cache the open models (downloads TDC data)
 uv run python -m server.heracleum_server    # serves http://0.0.0.0:7331/mcp
+
+# The 225-compound dataset is already bundled (server/data/heracleum_metabolites.csv).
+# To regenerate it from the paper's Supplementary PDF:
+#   pdftotext -layout plants-3875800-supplementary.pdf supp.txt
+#   uv run python parse_supplementary.py supp.txt   # -> server/data/supplementary_smiles.csv
+#   uv run python build_dataset.py                  # merges Table 2 refs + PubChem names
 ```
 
 ## Run with Docker
