@@ -1,0 +1,36 @@
+# Dockerfile for building INSIDE the CoScientist monorepo, where the build context is the
+# CoScientist repo root (mcp-servers/docker-compose.yml uses `context: ..`). For a standalone
+# build (context = this repo), use the plain ./Dockerfile instead.
+FROM python:3.12-slim
+
+# RDKit / scientific stack runtime libs (slim image omits these).
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libxrender1 \
+    libxext6 \
+    libgomp1 \
+  && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+RUN pip install uv
+
+COPY mcp-servers/heracleum-tox-mcp-server/pyproject.toml mcp-servers/heracleum-tox-mcp-server/README.md ./
+RUN uv sync --no-install-project
+
+# PyTDC supplies the open training datasets. It is installed WITHOUT its deps because it pins
+# the deprecated rdkit-pypi (cp311-only), which conflicts with modern rdkit on Python 3.12;
+# its data-download API only needs pandas/requests/huggingface-hub (already present).
+RUN uv pip install --no-deps "PyTDC==0.4.1"
+
+COPY mcp-servers/heracleum-tox-mcp-server/server ./server
+COPY mcp-servers/heracleum-tox-mcp-server/prepare_models.py ./
+
+# Pre-train & cache the open models at build time (best-effort: if there is no network at
+# build the server trains them lazily on the first request instead).
+RUN uv run --no-project python prepare_models.py \
+  || echo "model pre-training skipped (no network at build); will train lazily at runtime"
+
+ENV UV_SYSTEM_PYTHON=1
+EXPOSE 7331
+
+CMD ["uv", "run", "--no-project", "python", "-m", "server.heracleum_server"]

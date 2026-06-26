@@ -117,6 +117,9 @@ network at build time the server trains them lazily on first request).
 
 ## Attach to CoScientist
 
+> **Full turnkey guide + a verified end-to-end run log:** [`COSCIENTIST_INTEGRATION.md`](./COSCIENTIST_INTEGRATION.md).
+> It has been tested inside CoScientist (OpenRouter LLM, FEDOT.MAS calling these tools).
+
 CoScientist discovers MCP tools via RAG (Postgres + Qdrant). Register this server once:
 
 ```bash
