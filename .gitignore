@@ -1,0 +1,8 @@
+.venv/
+__pycache__/
+*.pyc
+artifacts/
+model_cache/
+server/model_cache/
+tdc_data/
+.env

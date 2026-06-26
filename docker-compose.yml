@@ -1,0 +1,11 @@
+services:
+  heracleum-tox-mcp-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: heracleum-tox-mcp-server
+    environment:
+      PYTHONUNBUFFERED: "1"
+    ports:
+      - "7336:7331"   # host 7336 -> container 7331 (matches the CoScientist stack)
+    restart: unless-stopped
