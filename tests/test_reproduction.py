@@ -45,7 +45,9 @@ def test_published_reference_values():
 def test_clustering_recovers_five_families():
     res = cluster_metabolites(ds, 5)
     assert res["n_clusters"] == 5
-    assert res["family_agreement"] >= 0.8           # cluster labels match the paper's families
+    assert res["family_agreement"] >= 0.9           # differential (scaffold) fingerprint
+    families = {c["letter"][0] for c in res["clusters"]}
+    assert families == {"A", "B", "C", "D", "E"}    # all five families recovered distinctly
     assert set(res["paper_outliers"]) == {"byakangelicol", "gamma-bisabolene", "alpha-terpinolene"}
 
 

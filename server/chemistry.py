@@ -16,6 +16,7 @@ from __future__ import annotations
 import numpy as np
 from rdkit import Chem, DataStructs, RDLogger
 from rdkit.Chem import Descriptors, Fragments, rdMolDescriptors
+from rdkit.Chem.Scaffolds import MurckoScaffold
 
 RDLogger.DisableLog("rdApp.*")
 
@@ -64,6 +65,35 @@ def morgan_fp(mol, radius: int = 2, nbits: int = 2048) -> np.ndarray:
 def morgan_bitvect(mol, radius: int = 2, nbits: int = 2048):
     """Return the RDKit ExplicitBitVect (for Tanimoto similarity)."""
     return rdMolDescriptors.GetMorganFingerprintAsBitVect(mol, radius, nBits=nbits)
+
+
+def scaffold(mol):
+    """Bemis-Murcko scaffold; falls back to the molecule itself if it is acyclic
+    (empty scaffold), so fatty acids etc. keep a meaningful fingerprint."""
+    try:
+        s = MurckoScaffold.GetScaffoldForMol(mol)
+        if s is not None and s.GetNumAtoms() > 0:
+            return s
+    except Exception:  # noqa: BLE001
+        pass
+    return mol
+
+
+def differential_fp(mol, radius: int = 2, nbits: int = 2048) -> np.ndarray:
+    """SynMap-analogue *differential* fingerprint: the ECFP of the Bemis-Murcko scaffold.
+
+    Syntelly's SynMap clusters chemical space with differential fingerprints + parametric
+    t-SNE (Karlov/Sosnin/Tetko/Fedorov, ACS Omega 2021), which emphasise the core skeleton
+    over decoration. Fingerprinting the scaffold reproduces that emphasis and separates
+    families that share substituents but differ in scaffold (e.g. furanocoumarins vs simple
+    aromatics) — recovering all five paper clusters.
+    """
+    return morgan_fp(scaffold(mol), radius, nbits)
+
+
+def differential_bitvect(mol, radius: int = 2, nbits: int = 2048):
+    """RDKit ExplicitBitVect of the scaffold differential fingerprint (for Tanimoto)."""
+    return morgan_bitvect(scaffold(mol), radius, nbits)
 
 
 def descriptor_vector(mol) -> np.ndarray:

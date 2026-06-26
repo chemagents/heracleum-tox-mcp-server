@@ -44,10 +44,11 @@ def reproduce_claims(ds: Dataset) -> list[dict]:
         question="How do the metabolites cluster in chemical space?",
         paper_assertion="The metabolites fall into five families: A terpenoids, B polyphenols/"
                         "flavonoids, C fatty acids, D aromatics, E furanocoumarins; 3 are unclustered.",
-        reproduced_statement=f"Open SynMap analogue (ECFP4 + agglomerative + t-SNE) recovers "
-                             f"{clustering['n_clusters']} clusters spanning families {sorted(letters)} "
-                             f"with {clustering['family_agreement']:.0%} agreement vs. the paper's "
-                             f"known labels; paper outliers: {clustering['paper_outliers']}.",
+        reproduced_statement=f"Open SynMap analogue (differential scaffold fingerprint + "
+                             f"agglomerative + t-SNE) recovers {clustering['n_clusters']} clusters "
+                             f"spanning families {sorted(letters)} with "
+                             f"{clustering['family_agreement']:.0%} agreement vs. the paper's known "
+                             f"labels; paper outliers: {clustering['paper_outliers']}.",
         evidence={"clusters": [{"letter": c["letter"], "size": c["size"],
                                 "family": c["family"]} for c in clustering["clusters"]],
                   "family_agreement": clustering["family_agreement"]},

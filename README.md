@@ -18,7 +18,7 @@ the platform paper cited as ref. [36]), trained on the same open datasets the pa
 | Syntelly module (in the paper) | What it does | Open-source analogue used here |
 |---|---|---|
 | Canonical SMILES search | name → SMILES, standardisation | **RDKit + PubChemPy** |
-| **SynMap** (clustering, §2.3) | parametric multiscale t-SNE + differential fingerprints | **ECFP4 (Morgan) + agglomerative (Tanimoto) + t-SNE** |
+| **SynMap** (clustering, §2.3) | parametric multiscale t-SNE + differential fingerprints | **differential fingerprint (Bemis–Murcko scaffold ECFP) + agglomerative (Tanimoto) + t-SNE** |
 | **LD50 (mouse) prediction** (§2.4) | fingerprint-CatBoost regression, RMSE | **CatBoost** on ECFP4+descriptors, trained on **TDC `LD50_Zhu`** (TOXRIC hook for exact routes) |
 | **General toxicity** (§3.5) | CatBoost/XGBoost classification, ROC-AUC | **XGBoost** on fragment descriptors, trained on **TDC `DILI` / `hERG` / `Carcinogens_Lagunin`** |
 | **Applicability Domain** (§2.5) | kNN(k=5) distance → normalise → Gaussian → % | **Tanimoto kNN(k=5) + Gaussian**, identical formula |
@@ -51,7 +51,7 @@ presigned URLs (same pattern as `chemical-mcp-server` / `tox-antitargets-mcp-ser
 |---|---|---|
 | Dataset size | 225 metabolites | **225 (exact, from Supplementary S1–S5)** |
 | Cluster sizes A/B/C/D/E | 25/22/132/21/22 | **25/22/132/21/22 (exact)** |
-| Chemical-space clusters | 5 families | **5, ~86 % family agreement** |
+| Chemical-space clusters | 5 families (A–E) | **all 5 recovered, ~95 % family agreement** |
 | Most-toxic cluster | E (furanocoumarins) | **E** |
 | Cluster-E IV LD50 range | 62–450 mg/kg | **62–450 (bergamottin/phellopterin 62, umbelliferone 450)** |
 | LD50 regression error | RMSE 0.41–0.87 (Table S6) | **RMSE 0.60** |
@@ -78,9 +78,12 @@ with Syntelly's proprietary models):
 - *Per-route LD50*: TOXRIC's six per-route mouse sets are not openly scriptable, so all
   routes share the open acute-LD50 model unless you supply per-route CSVs (see below). The
   **cluster ranking** (E most toxic) is the robust open reproduction.
-- *Cluster D vs E*: plain ECFP4 + agglomerative clustering does not separate aromatics (D)
-  from furanocoumarins (E) as cleanly as the paper's differential-fingerprint t-SNE (they are
-  structurally adjacent); 4 of 5 families are recovered distinctly at ~86 % agreement.
+
+The clustering uses a **differential fingerprint** (ECFP of the Bemis–Murcko scaffold) as the
+open analogue of SynMap's differential fingerprints + parametric t-SNE (Karlov/Sosnin/Tetko/
+Fedorov, *ACS Omega* 2021). Emphasising the core scaffold separates furanocoumarins (E) from
+simple aromatics (D), recovering **all five families** at ~95 % agreement; set
+`HERACLEUM_CLUSTER_FINGERPRINT=ecfp4` for the plain-molecule fallback (~86 %, merges D into E).
 
 ## Run locally
 

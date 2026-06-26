@@ -3,10 +3,15 @@
 The paper (Section 2.3) clusters the metabolites with SynMap: *parametric multiscale
 t-SNE on differential fingerprints*, yielding five families (Fig. 1). The open analogue:
 
-    ECFP4 (Morgan r=2) fingerprints
+    differential fingerprint = ECFP of the Bemis-Murcko scaffold
+        (the open analogue of SynMap's differential fingerprints — emphasises the core
+         skeleton, separating furanocoumarins from simple aromatics; recovers all 5 families)
         -> Tanimoto distance matrix
         -> AgglomerativeClustering(n_clusters=5, linkage="average")   (the 5 clusters)
         -> t-SNE(2D) embedding for the Fig.-1 scatter map
+
+Set HERACLEUM_CLUSTER_FINGERPRINT=ecfp4 to fall back to the plain-molecule ECFP4 (which
+merges aromatics D into furanocoumarins E, ~86% agreement, 4/5 families).
 
 Each computed cluster is labelled A-E by its dominant chemical family, reproducing the
 paper's assignment (A terpenoids, B polyphenols/flavonoids, C fatty acids, D aromatics,
@@ -25,9 +30,21 @@ from .config import get_settings
 from .dataset import CLASS_TO_CLUSTER, CLUSTER_FAMILIES, Dataset
 
 
+def _fp_bitvect(mol, s):
+    if s.cluster_fingerprint == "ecfp4":
+        return chemistry.morgan_bitvect(mol, s.morgan_radius, s.morgan_nbits)
+    return chemistry.differential_bitvect(mol, s.morgan_radius, s.morgan_nbits)
+
+
+def _fp_array(mol, s):
+    if s.cluster_fingerprint == "ecfp4":
+        return chemistry.morgan_fp(mol, s.morgan_radius, s.morgan_nbits)
+    return chemistry.differential_fp(mol, s.morgan_radius, s.morgan_nbits)
+
+
 def _bitvects(ds: Dataset):
     s = get_settings()
-    return [chemistry.morgan_bitvect(m, s.morgan_radius, s.morgan_nbits) for m in ds.mols]
+    return [_fp_bitvect(m, s) for m in ds.mols]
 
 
 def tanimoto_distance_matrix(ds: Dataset) -> np.ndarray:
@@ -46,7 +63,7 @@ def tsne_embedding(ds: Dataset, perplexity: float | None = None) -> np.ndarray:
     from sklearn.manifold import TSNE
 
     s = get_settings()
-    X = np.vstack([chemistry.morgan_fp(m, s.morgan_radius, s.morgan_nbits) for m in ds.mols])
+    X = np.vstack([_fp_array(m, s) for m in ds.mols])
     perp = perplexity if perplexity is not None else min(s.tsne_perplexity, max(5, (ds.n - 1) / 3))
     emb = TSNE(n_components=2, init="pca", random_state=s.random_state,
                perplexity=perp).fit_transform(X)

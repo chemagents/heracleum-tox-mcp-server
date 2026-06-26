@@ -81,7 +81,9 @@ def chemical_space_clustering(
             "finding": "Five chemical families recovered (terpenoids, polyphenols/flavonoids, "
                        "fatty acids, aromatics, furanocoumarins), matching the paper's Fig. 1.",
         },
-        "metadata": {"figure": fig, "method": "ECFP4 + agglomerative (Tanimoto) + t-SNE",
+        "metadata": {"figure": fig,
+                     "method": "differential fingerprint (Bemis-Murcko scaffold ECFP) + "
+                               "agglomerative (Tanimoto) + t-SNE — open SynMap analogue",
                      "paper_clusters": CLUSTER_FAMILIES, "reference": PAPER},
     }
 

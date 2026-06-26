@@ -40,6 +40,9 @@ class Settings(BaseSettings):
     morgan_radius: int = Field(default=2)        # ECFP4
     morgan_nbits: int = Field(default=2048)
     n_clusters: int = Field(default=5)           # paper: five clusters A-E
+    # "differential" = Bemis-Murcko scaffold ECFP (SynMap differential-fingerprint analogue;
+    # separates all 5 families); "ecfp4" = plain molecule ECFP4 (legacy, merges D into E).
+    cluster_fingerprint: str = Field(default="differential")
     tsne_perplexity: float = Field(default=15.0)
     random_state: int = Field(default=42)
 
